@@ -33,5 +33,4 @@ This project builds a repository for storing and managing creative assets, autom
 1. Upload creative assets to the designated S3 bucket.
 2. The Lambda function `asset_manager.py` automatically tags and categorizes the assets.
 
-## License
-This project is licensed under the MIT License.
+
