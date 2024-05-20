@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  CreativeAssetS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: 'creative-asset-bucket'
+  
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service: 'lambda.amazonaws.com'
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: 'LambdaExecutionPolicy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'logs:*'
+                  - 's3:*'
+                  - 'rekognition:*'
+                Resource: '*'
+  AssetManagerFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      FunctionName: 'AssetManagerFunction'
+      Handler: 'src/lambda_function.lambda_handler'
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: 'your-bucket-name'
+        S3Key: 'asset_manager.zip'
+      Runtime: 'python3.8'
+      Timeout: 60
+      MemorySize: 128
+
+  S3BucketNotification:
+    Type: 'AWS::S3::BucketNotification'
+    Properties:
+      Bucket: !Ref CreativeAssetS3Bucket
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt AssetManagerFunction.Arn
